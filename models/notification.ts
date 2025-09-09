@@ -1,9 +1,9 @@
-import mongoose, { Document, Model, Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 interface INotification {
 
     _id: mongoose.Types.ObjectId,
     recevier: mongoose.Types.ObjectId,
-    type: "comment" | "like" | "new_post" | "subscribe"|"save",
+    type: "comment" | "like" | "new_post" | "subscribe" | "save",
     sender: mongoose.Types.ObjectId,
     blogId?: mongoose.Types.ObjectId,
     commentId?: mongoose.Types.ObjectId,
@@ -35,7 +35,7 @@ const notificationSchema: Schema<INotification> = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['comment', 'like', 'new_post', 'subscribe','save'],
+        enum: ['comment', 'like', 'new_post', 'subscribe', 'save'],
         required: true,
     },
     tittle: {

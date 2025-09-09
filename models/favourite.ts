@@ -1,4 +1,4 @@
-import mongoose, { Document, Model, Schema } from "mongoose";
+import mongoose, {  Model,} from "mongoose";
 
 interface IFavourite {
     blogId: mongoose.Types.ObjectId,

@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -34,7 +34,7 @@ export default function EditBlogForm({ blogId, initialData }: Props) {
   const [tittle, setTitle] = useState(initialData?.tittle || "");
   const [category, setCategory] = useState<Category | "">(initialData?.category || "");
   const [content, setContent] = useState(initialData?.content || "");
-    const [image, setImage] = useState<File | null>(null);
+  const [image, setImage] = useState<File | null>(null);
 
   const router = useRouter()
 
@@ -51,7 +51,7 @@ export default function EditBlogForm({ blogId, initialData }: Props) {
 
 
     if (image) formData.append('image', image);
-    const res = await fetch(`http://localhost:3000/api/blog/${id}`, {
+    const res = await fetch(`/api/blog/${id}`, {
       method: "PUT",
       body: formData,
     })
@@ -64,7 +64,7 @@ export default function EditBlogForm({ blogId, initialData }: Props) {
       setContent("");
       setImage(null)
     }
-    else if (res.status == 404) {
+    else if (res.status == 400) {
       alert("Blog is not updated successfully")
     }
     console.log(res, "res oky")

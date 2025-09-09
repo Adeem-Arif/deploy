@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 import Notification from "@/models/notification";
 import mongoose from "mongoose";
+import notification from "@/models/notification";
 
 export async function GET(req: NextRequest) {
     await connectionToDatabase();
@@ -60,14 +61,14 @@ export async function GET(req: NextRequest) {
                 }
             },
             { $unwind: { path: "$comment", preserveNullAndEmptyArrays: true } },
-             {
+            {
                 $lookup: {
                     from: "favourites",
                     localField: "favourite",
                     foreignField: "_id",
                     as: "favourite",
                     pipeline: [
-                        { $project: { content: 1 } } 
+                        { $project: { content: 1 } }
                     ]
                 }
             },
@@ -98,4 +99,20 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ message: "Error fetching notifications" }, { status: 500 });
     }
 }
+
+export async function PUT() {
+    try {
+        await connectionToDatabase();
+        // Update all unread notifications for the logged-in user
+        await notification.updateMany(
+            { read: false },
+            { $set: { read: true } }
+        );
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        return NextResponse.json({ success: false, error: "Failed to mark as read" }, { status: 500 });
+    }
+}
+
 

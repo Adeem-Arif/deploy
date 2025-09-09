@@ -13,7 +13,7 @@ export default function LoadingScreen() {
       >
         <Loader2 className="h-12 w-12 text-blue-600 dark:text-blue-400 animate-spin" />
         <p className="text-lg font-semibold text-zinc-700 dark:text-zinc-300">
-          Loading CureNet Blog...
+          Loading My Blog...
         </p>
       </motion.div>
     </div>

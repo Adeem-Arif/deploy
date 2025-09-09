@@ -34,8 +34,11 @@ export default function Header() {
       try {
         const res = await fetch("/api/notification");
         const data = await res.json();
-        if (res.ok && Array.isArray(data.notifications)) {
-          setNotificationCount(data.notifications.length);
+
+        if (res.status === 200 && Array.isArray(data.notifications)) {
+          // count only UNREAD
+          const unread = data.notifications.filter((n: any) => !n.read).length;
+          setNotificationCount(unread);
         } else {
           setNotificationCount(0);
         }
@@ -73,9 +76,23 @@ export default function Header() {
               {notificationCount}
             </span>
           )}
-           <Button variant="ghost" size="icon" onClick={() => router.push("/pages/notification")}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={async () => {
+              try {
+                await fetch("/api/notification", { method: "PUT" });
+                setNotificationCount(0); // clear badge permanently
+                router.push("/pages/notification");
+              } catch (error) {
+                console.error("Failed to mark notifications as read", error);
+              }
+            }}
+          >
             <Bell className="w-5 h-5" />
           </Button>
+
+
         </div>
 
         {session ? (

@@ -6,13 +6,13 @@ import { Heart } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { FaBookmark } from "react-icons/fa";
-
-
+import Link from "next/link";
 
 interface Blog {
   _id: string;
-  tittle: string;
+  title: string;
   content: string;
+  image?: string; // added image field
 }
 
 export default function WishList() {
@@ -33,38 +33,29 @@ export default function WishList() {
     fetchWishlist();
   }, []);
 
-
   const removeWishlistItem = async (blogId: string) => {
     try {
-      const res=await fetch(`/api/save/${blogId}`, {
-        method:"PUT",
-        headers:{
+      const res = await fetch(`/api/save/${blogId}`, {
+        method: "PUT",
+        headers: {
           "Content-Type": "application/json",
-        
-      },
-      body: JSON.stringify({ blogId }),
-      
-    }
-    )
-      if (!res.ok) {
+        },
+        body: JSON.stringify({ blogId }),
+      });
+
+      if (res.status!== 200) {
         const errorData = await res.json();
         throw new Error(errorData.message || "Failed to remove item");
       }
+
       const updateWishlist = wishlist.filter((item) => item._id !== blogId);
-      setWishlist(updateWishlist)
+      setWishlist(updateWishlist);
       toast.success("Removed from wishlist");
-    }
-    
-    catch (error) {
-     
+    } catch (error) {
       console.error("Error removing item from wishlist:", error);
       toast.error("Failed to remove item from wishlist");
     }
-  }
-      
-
-
-
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-white to-zinc-100 dark:from-zinc-900 dark:to-black text-zinc-900 dark:text-white px-6 py-10">
@@ -81,18 +72,41 @@ export default function WishList() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {wishlist.map((item) => (
-              <Card key={item._id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-5 space-y-2">
-                  <h3 className="text-xl font-semibold">{item.tittle}</h3>
-                  <p
-                    className="text-zinc-600 dark:text-zinc-300"
-                    dangerouslySetInnerHTML={{ __html: item.content }}
-                  ></p>
-                  <Button variant="outline" onClick={()=>removeWishlistItem(item._id)} >
-                    <FaBookmark  />
-                  </Button>
-                </CardContent>
-              </Card>
+              <Link key={item._id} href={`/pages/blog/${item._id}`}>
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer"> 
+
+                  <CardContent className="p-5 space-y-3">
+                    {/* Blog Image */}
+                    {item.image && (
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-full h-40 object-cover rounded-lg"
+                      />
+                    )}
+
+                    {/* Blog Title */}
+                    <h3 className="text-xl font-semibold">{item.title}</h3>
+
+                    {/* Blog Snippet */}
+                    <p
+                      className="text-zinc-600 dark:text-zinc-300 line-clamp-3"
+                      dangerouslySetInnerHTML={{ __html: item.content }}
+                    />
+
+                    {/* Remove Button */}
+                    <Button
+                      variant="outline"
+                      onClick={(e) => {
+                        e.preventDefault(); // prevent navigation when removing
+                        removeWishlistItem(item._id);
+                      }}
+                    >
+                      <FaBookmark />
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         )}

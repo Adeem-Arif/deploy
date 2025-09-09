@@ -7,7 +7,7 @@ import Heading from "@tiptap/extension-heading";
 import BulletList from "@tiptap/extension-bullet-list";
 import ListItem from "@tiptap/extension-list-item";
 import { Bold, Italic, Underline as UnderlineIcon, List, Heading2 } from "lucide-react";
-import { useEffect } from "react";
+
 
 type Props = {
   content: string;

@@ -39,7 +39,7 @@ export default function CommentPage() {
             });
 
             const data = await res.json();
-            if (!res.ok) throw new Error(data.message || "Failed to post comment");
+            if (res.status!== 200) throw new Error(data.message || "Failed to post comment");
 
             setMessage('');
             await fetchComments(blogId);
