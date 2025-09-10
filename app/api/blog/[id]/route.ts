@@ -10,10 +10,10 @@ import { NextRequest, NextResponse } from "next/server";
 // ✅ UPDATE blog
 export async function PUT(
     req: NextRequest,
-    context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
     await connectionToDatabase();
-    const { id } = context.params;
+    const id = params.id;
 
     try {
         const formData = await req.formData();
@@ -57,9 +57,11 @@ export async function PUT(
 
 // ✅ GET single blog
 export async function GET(
-    id: string
+   req: NextRequest,
+  context: { params: { id: string } }
 ) {
     await connectionToDatabase();
+    const id = context.params.id;
     const blog = await Blog.findById(id);
     if (!blog) {
         return NextResponse.json({ message: "Blog not found" }, { status: 404 });
