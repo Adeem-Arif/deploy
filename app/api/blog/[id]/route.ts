@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 // ✅ UPDATE blog
 export async function PUT(
     req: NextRequest,
-  { params }: { params: { id: string } }
+    { params }: { params: { id: string } }
 ) {
     await connectionToDatabase();
     const id = params.id;
@@ -57,11 +57,11 @@ export async function PUT(
 
 // ✅ GET single blog
 export async function GET(
-   req: NextRequest,
-  context: { params: { id: string } }
+    req: NextRequest,
+    context: { params: { id: string } }
 ) {
     await connectionToDatabase();
-    const id = context.params.id;
+    const { id } = context.params;
     const blog = await Blog.findById(id);
     if (!blog) {
         return NextResponse.json({ message: "Blog not found" }, { status: 404 });
