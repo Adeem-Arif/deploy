@@ -68,7 +68,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         const comments = await Comment.find({ blogId: id }).sort({ createdAt: -1 })
         return NextResponse.json({ comments })
     } catch (error) {
-        console.log(error)
+        return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }
 
 }

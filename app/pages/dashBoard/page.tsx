@@ -48,6 +48,7 @@ export default function DashBoard() {
   }, []);
 
   // ✅ Like handler
+  // ✅ Like handler
   const handleLike = async (blogId: string, isCurrentlyLiked: boolean) => {
     try {
       const res = await fetch(`/api/like/${blogId}`, { method: "POST" });
@@ -63,8 +64,8 @@ export default function DashBoard() {
           blog._id === blogId
             ? {
               ...blog,
-              isLike: data.isLike,       // backend sends toggle state
-              likesCount: data.likesCount, // ✅ use real count from backend
+              isLike: data.isLike ?? !isCurrentlyLiked, // ✅ toggle or backend value
+              likesCount: data.likesCount, // ✅ use count from backend
             }
             : blog
         )
@@ -73,6 +74,7 @@ export default function DashBoard() {
       console.error("Error liking blog:", error);
     }
   };
+
 
   // ✅ Hide welcome after 5s
   useEffect(() => {
@@ -180,7 +182,7 @@ export default function DashBoard() {
                         className="w-4 h-4"
                         color={b.isLike ? "red" : "gray"}
                       />
-                   {b.likesCount ?? 0} Likes {/* ✅ Correct, total like count */}
+                      {b.likesCount ?? 0} Likes {/* ✅ Correct, total like count */}
                     </Button>
 
                     {/* Comment button */}

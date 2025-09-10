@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Bell, Heart, Plus } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +15,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, Heart, Plus } from "lucide-react";
+
+// ✅ Define a type for notifications
+interface Notification {
+  _id: string;
+  read: boolean;
+}
 
 export default function Header() {
   const router = useRouter();
@@ -36,8 +41,10 @@ export default function Header() {
         const data = await res.json();
 
         if (res.status === 200 && Array.isArray(data.notifications)) {
-          // count only UNREAD
-          const unread = data.notifications.filter((n: any) => !n.read).length;
+          // ✅ No `any` now, use Notification type
+          const unread = (data.notifications as Notification[]).filter(
+            (n) => !n.read
+          ).length;
           setNotificationCount(unread);
         } else {
           setNotificationCount(0);
@@ -54,21 +61,36 @@ export default function Header() {
 
   return (
     <header className="flex items-center justify-between px-6 py-4 shadow-md bg-white dark:bg-zinc-900">
-      <Link href="/pages/dashBoard" className="text-2xl font-bold text-zinc-900 dark:text-white">
+      <Link
+        href="/pages/dashBoard"
+        className="text-2xl font-bold text-zinc-900 dark:text-white"
+      >
         MyBlog
       </Link>
 
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push("/pages/wishlist")}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.push("/pages/wishlist")}
+        >
           <Heart className="w-5 h-5" />
         </Button>
 
-        <Button variant="ghost" size="icon" onClick={() => router.push("/pages/createBlog")}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.push("/pages/createBlog")}
+        >
           <Plus className="w-5 h-5" />
         </Button>
 
         <div className="relative">
-          <Button variant="ghost" size="icon" onClick={() => router.push("/pages/myblog")}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push("/pages/myblog")}
+          >
             <BookOpen className="w-5 h-5" />
           </Button>
           {notificationCount > 0 && (
@@ -91,8 +113,6 @@ export default function Header() {
           >
             <Bell className="w-5 h-5" />
           </Button>
-
-
         </div>
 
         {session ? (
@@ -101,7 +121,10 @@ export default function Header() {
               <Button variant="ghost" className="rounded-full p-0 gap-2">
                 <span>{session.user?.name}</span>
                 <Avatar>
-                  <AvatarImage src={session.user?.image || undefined} alt="User avatar" />
+                  <AvatarImage
+                    src={session.user?.image || undefined}
+                    alt="User avatar"
+                  />
                   <AvatarFallback>{avatarFallback}</AvatarFallback>
                 </Avatar>
               </Button>
@@ -111,10 +134,14 @@ export default function Header() {
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/pages/dashBoard" className="w-full">Dashboard</Link>
+                <Link href="/pages/dashBoard" className="w-full">
+                  Dashboard
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/pages/setting" className="w-full">Settings</Link>
+                <Link href="/pages/setting" className="w-full">
+                  Settings
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
@@ -124,14 +151,20 @@ export default function Header() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
-                <button className="w-full text-left" onClick={() => router.push("/authentication/signUp")}>
+                <button
+                  className="w-full text-left"
+                  onClick={() => router.push("/authentication/signUp")}
+                >
                   Sign up
                 </button>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Button variant="outline" onClick={() => router.push("/authentication/signIn")}>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/authentication/signIn")}
+          >
             Sign In
           </Button>
         )}

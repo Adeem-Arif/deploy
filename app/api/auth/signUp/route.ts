@@ -43,22 +43,23 @@ export async function POST(req: Request) {
       email,
       password: hashedPassword,
       OTP: otp,
-      
     });
     await newUser.save();
     console.log("✅ User created:", newUser.email);
 
     // 6️⃣ Send OTP email using Resend
-    const resend = new Resend(process.env.Resend_Email_API); // ⚠️ must match your .env key
-    const { error } = await resend.emails.send({
-      from: 'Acme <onboarding@resend.dev>',
-      to: 'delivered@resend.dev',   // use a test address
-      subject: 'My Blog - Your OTP Code',
+    const resend = new Resend(process.env.Resend_Email_API);
+
+    const response = await resend.emails.send({
+      from: "Acme <onboarding@resend.dev>",
+      to: email, // ✅ use the actual user's email instead of test address
+      subject: "My Blog - Your OTP Code",
       react: BlogOtpEmail({ validationCode: otp }),
     });
 
-    if (error) {
-      console.error("❌ Email send error:", error);
+    // ✅ Explicit type check
+    if ("error" in response && response.error) {
+      console.error("❌ Email send error:", response.error);
       return NextResponse.json(
         { message: "User created but OTP email failed" },
         { status: 500 }
@@ -70,8 +71,9 @@ export async function POST(req: Request) {
       { message: "User created. OTP sent to email." },
       { status: 201 }
     );
-  } catch (err: any) {
-    console.error("❌ Signup Error:", err.message || err);
+  } catch (err: unknown) {
+    // ✅ no more `any`, now `unknown`
+    console.error("❌ Signup Error:", err);
     return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
 }

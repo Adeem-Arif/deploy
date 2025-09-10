@@ -97,6 +97,7 @@ function extractPublicId(imageUrl: string): string | null {
         const publicIdWithExt = parts.slice(-2).join("/");
         return publicIdWithExt.replace(/\.[^/.]+$/, ""); // remove extension
     } catch {
+        console.error("Invalid image URL:", imageUrl);
         return null;
     }
 }

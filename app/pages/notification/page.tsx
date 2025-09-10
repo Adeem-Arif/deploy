@@ -1,12 +1,19 @@
 "use client";
 
 import { JSX, useEffect, useState } from "react";
-import { Bell, BookmarkCheck, Heart, MessageCircle, PlusSquare, UserPlus } from "lucide-react";
+import {
+  Bell,
+  BookmarkCheck,
+  Heart,
+  MessageCircle,
+  PlusSquare,
+  UserPlus,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
 
 type User = { name: string };
-type Blog = { title?: string; content?: string };
+type Blog = { tittle?: string; content: string };
 
 type NotificationType = "like" | "comment" | "new_post" | "subscribe" | "save";
 
@@ -17,6 +24,7 @@ type NotificationProps = {
   user?: User[];
   blog?: Blog;
   commentText?: string;
+
 };
 
 export default function Notifications() {
@@ -30,9 +38,11 @@ export default function Notifications() {
       const data = await res.json();
       if (res.ok) {
         // Avoid duplicates by using _id
-        setNotifications(prev => {
-          const ids = new Set(prev.map(n => n._id));
-          const newNotifications = data.notifications.filter((n: NotificationProps) => !ids.has(n._id));
+        setNotifications((prev) => {
+          const ids = new Set(prev.map((n) => n._id));
+          const newNotifications = data.notifications.filter(
+            (n: NotificationProps) => !ids.has(n._id)
+          );
           return [...prev, ...newNotifications];
         });
       } else {
@@ -61,20 +71,20 @@ export default function Notifications() {
     return icons[type] || <Bell className="text-yellow-500" />;
   };
 
-  // Map type to text
+  // ✅ Fixed: escaped quotes with &quot;
   const getMessage = (note: NotificationProps) => {
     const senderName = note.user?.[0]?.name || "Someone";
     switch (note.type) {
       case "like":
-        return `${senderName} liked your post "${note.blog?.title || ""}"`;
+        return `${senderName} liked your post &quot;${note.blog?.tittle || ""}&quot;`;
       case "comment":
-        return `${senderName} commented on "${note.blog?.title || ""}"`;
+        return `${senderName} commented on &quot;${note.blog?.tittle || ""}&quot;`;
       case "new_post":
         return `${senderName} posted something new`;
       case "subscribe":
         return `${senderName} subscribed to you`;
       case "save":
-        return `${senderName} saved your post "${note.blog?.title || ""}"`;
+        return `${senderName} saved your post &quot;${note.blog?.tittle || ""}&quot;`;
       default:
         return `${senderName} sent a notification`;
     }
@@ -111,11 +121,18 @@ export default function Notifications() {
                     <CardContent className="p-5 space-y-2 flex items-start gap-4">
                       <div className="flex-shrink-0">{getIcon(note.type)}</div>
                       <div className="flex-1 space-y-1">
-                        <div className="text-lg font-semibold">{getMessage(note)}</div>
+                        <div
+                          className="text-lg font-semibold"
+                          dangerouslySetInnerHTML={{ __html: getMessage(note) }}
+                        />
                         {note.type === "comment" && note.commentText && (
-                          <p className="text-zinc-600 dark:text-zinc-300 italic">"{note.commentText}"</p>
+                          <p className="text-zinc-600 dark:text-zinc-300 italic">
+                            &quot;{note.commentText}&quot;
+                          </p>
                         )}
-                        <div className="text-sm text-zinc-400">{new Date(note.createdAt).toLocaleString()}</div>
+                        <div className="text-sm text-zinc-400">
+                          {new Date(note.createdAt).toLocaleString()}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

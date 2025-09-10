@@ -53,6 +53,9 @@ export default function SignUp() {
     } catch (err) {
       setPending(false);
       setError("Something went wrong. Please try again.");
+      console.error("❌ Signup Error:", err);
+      
+    
     }
   };
 

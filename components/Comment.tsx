@@ -6,13 +6,21 @@ import { Button } from '@/components/ui/button';
 import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
+// ✅ Define a type for Comment
+interface Comment {
+    _id: string;
+    name?: string;
+    email?: string;
+    comment: string;
+}
+
 export default function CommentPage() {
     const { data: session } = useSession();
     const params = useParams();
     const blogId = params?.id as string;
 
     const [message, setMessage] = useState('');
-    const [comments, setComments] = useState<any[]>([]);
+    const [comments, setComments] = useState<Comment[]>([]);
     const [loading, setLoading] = useState(false);
 
     // Fetch all comments
@@ -39,16 +47,18 @@ export default function CommentPage() {
             });
 
             const data = await res.json();
-            if (res.status!== 200) throw new Error(data.message || "Failed to post comment");
+            // ✅ Use res.ok instead of checking only status 200
+            if (!res.ok) throw new Error(data.message || "Failed to post comment");
 
             setMessage('');
             await fetchComments(blogId);
         } catch (error) {
             console.error("Adding comment failed:", error);
         } finally {
-            setLoading(false); // ✅ always stop loading
+            setLoading(false);
         }
     };
+
     // Load comments when blogId changes
     useEffect(() => {
         if (blogId) fetchComments(blogId);
@@ -85,13 +95,13 @@ export default function CommentPage() {
             </h2>
 
             <div className="space-y-4">
-                {comments.map((c: any) => {
+                {comments.map((c) => {
                     const userEmail = session?.user?.email;
                     const isOwnComment = userEmail ? userEmail === c.email : false;
 
                     return (
                         <div key={c._id} className="border rounded p-2">
-                            <strong>{isOwnComment ? "You" : c.name || "Anonymous"}</strong>
+                            <strong className={isOwnComment ? "text-red-500" : "text-gray-800"}>{isOwnComment ? "You" : c.name || "Anonymous"}</strong>
                             <p>{c.comment}</p>
                         </div>
                     );

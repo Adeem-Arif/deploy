@@ -1,6 +1,6 @@
 "use client";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import {
     Heart,
@@ -40,7 +40,7 @@ import { FaBell, FaRegBellSlash } from "react-icons/fa";
 
 type Blog = {
     _id: string;
-    title: string;
+    tittle: string;
     content: string;
     category: string;
     likesCount: number;
@@ -49,24 +49,27 @@ type Blog = {
     isLike: boolean;
     createdAt: string;
     image: string;
-    name:string;
 };
 
-export default function BlogDetail({ params }: { params: { id: string } }) {
+export default function BlogDetail({
+    params,
+}: {
+    params: Promise<{ id: string }>;
+}) {
+    const { id } = use(params); // ✅ unwrap params (Next.js 15)
     const { data: session } = useSession();
     const router = useRouter();
 
     const [blog, setBlog] = useState<Blog | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubscribed, setIsSubscribed] = useState(true);
-    const [wishlist, setWishlist] = useState<Blog[]>([]);
     const [btnLoading, setBtnLoading] = useState(false);
 
     // Fetch blog
     useEffect(() => {
         const fetchBlog = async () => {
             try {
-                const res = await fetch(`/api/blog/${params.id}`, { cache: "no-store" });
+                const res = await fetch(`/api/blog/${id}`, { cache: "no-store" });
                 if (!res.ok) throw new Error("Blog not found");
 
                 const data = await res.json();
@@ -79,7 +82,7 @@ export default function BlogDetail({ params }: { params: { id: string } }) {
             }
         };
         fetchBlog();
-    }, [params.id, router]);
+    }, [id, router]);
 
     // Like
     const handleLike = async (blogId: string, isCurrentlyLike: boolean) => {
@@ -99,7 +102,9 @@ export default function BlogDetail({ params }: { params: { id: string } }) {
                     : null
             );
 
-            toast.success(isCurrentlyLike ? "Unliked successfully" : "Liked successfully");
+            toast.success(
+                isCurrentlyLike ? "Unliked successfully" : "Liked successfully"
+            );
         } catch (error) {
             console.error("Error liking blog", error);
         } finally {
@@ -120,7 +125,9 @@ export default function BlogDetail({ params }: { params: { id: string } }) {
             if (!res.ok) return toast.error(data.message || "Action failed");
 
             setIsSubscribed(!isSubscribed);
-            toast.success(isSubscribed ? "Subscribed successfully" : "UnSubscribed successfully");
+            toast.success(
+                isSubscribed ? "Subscribed successfully" : "UnSubscribed successfully"
+            );
         } catch {
             toast.error("Something went wrong");
         } finally {
@@ -139,7 +146,6 @@ export default function BlogDetail({ params }: { params: { id: string } }) {
 
             const data = await res.json();
             if (res.ok) {
-                setWishlist(data.wishlist);
                 toast.success("Blog saved to wishlist");
                 router.push("/pages/wishlist");
             } else {
@@ -186,7 +192,10 @@ export default function BlogDetail({ params }: { params: { id: string } }) {
                         <CardTitle>Blog not found</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p>The blog you're looking for doesn't exist or may have been removed.</p>
+                        <p>
+                            The blog you&apos;re looking for doesn&apos;t exist or may have
+                            been removed.
+                        </p>
                     </CardContent>
                     <CardFooter>
                         <Button onClick={() => router.push("/pages/dashBoard")}>
@@ -204,13 +213,12 @@ export default function BlogDetail({ params }: { params: { id: string } }) {
             <Card className="overflow-hidden">
                 {blog.image && (
                     <div className="relative h-64 w-full">
-                        <img src={blog.image} alt={blog.title} className="object-cover w-full h-full" />
+                        <img src={blog.image} alt={blog.tittle} className="object-cover w-full h-full" />
                     </div>
                 )}
 
                 <CardHeader>
                     <div className="flex justify-between items-start">
-
                         <div className="flex items-center gap-4">
                             <Avatar>
                                 <AvatarFallback>
@@ -219,15 +227,15 @@ export default function BlogDetail({ params }: { params: { id: string } }) {
                             </Avatar>
 
                             <div className="flex flex-col">
-                                <span className="text-sm font-medium">
-                                    {session?.user?.name===blog?.name || "Anonymous"}
+                                <span className="text-sm font-medium leading-none ">
+                                    {session?.user?.id === blog?.userId
+                                        ? session.user.name
+                                        : "Anonymous"}
                                 </span>
                                 <div className="flex items-center text-sm text-muted-foreground mt-1">
                                     <Clock className="mr-1 h-4 w-4" />
                                     {formatDate(blog.createdAt)}
                                 </div>
-
-                                {/* ✅ Badge moved to its own line */}
                                 <Badge className="text-sm mt-2 w-fit">{blog.category}</Badge>
                             </div>
                         </div>
@@ -235,7 +243,6 @@ export default function BlogDetail({ params }: { params: { id: string } }) {
                         {/* Actions (only for owner) */}
                         {session?.user?.id === blog.userId && (
                             <div className="flex gap-2">
-                                {/* ✅ Edit Button */}
                                 <Button
                                     variant="outline"
                                     size="sm"
@@ -247,22 +254,17 @@ export default function BlogDetail({ params }: { params: { id: string } }) {
                                     Edit
                                 </Button>
 
-                                {/* ✅ Delete Button */}
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                         <Button
                                             variant="outline"
                                             size="sm"
                                             className="flex items-center gap-1 bg-red-600 text-white hover:bg-red-700"
-                                          
                                             disabled={btnLoading}
                                         >
                                             <Trash2 className="h-4 w-4" />
                                             Delete
                                         </Button>
-
-
-
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
                                         <AlertDialogHeader>
@@ -274,7 +276,7 @@ export default function BlogDetail({ params }: { params: { id: string } }) {
                                         <AlertDialogFooter>
                                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                                             <AlertDialogAction
-                                                 onClick={() => removeBlog(blog._id)}
+                                                onClick={() => removeBlog(blog._id)}
                                                 className="bg-red-600 hover:bg-red-700"
                                             >
                                                 Delete
@@ -285,7 +287,7 @@ export default function BlogDetail({ params }: { params: { id: string } }) {
                             </div>
                         )}
 
-                        {/* ✅ Subscribe + Wishlist */}
+                        {/* Subscribe + Wishlist */}
                         <div className="flex gap-2">
                             <Button
                                 variant="secondary"
@@ -309,17 +311,12 @@ export default function BlogDetail({ params }: { params: { id: string } }) {
                                 Save
                             </Button>
                         </div>
-
-
-
-
                     </div>
                 </CardHeader>
 
                 <CardContent className="space-y-6">
-                    {/* Title + content */}
                     <CardTitle className="text-3xl font-bold tracking-tight">
-                        {blog.title}
+                        {blog.tittle}
                     </CardTitle>
 
                     <div
@@ -327,7 +324,6 @@ export default function BlogDetail({ params }: { params: { id: string } }) {
                         dangerouslySetInnerHTML={{ __html: blog.content }}
                     />
 
-                    {/* Like button */}
                     <Button
                         variant="ghost"
                         className="gap-2"
@@ -353,6 +349,6 @@ export default function BlogDetail({ params }: { params: { id: string } }) {
                     </div>
                 </CardFooter>
             </Card>
-        </div >
+        </div>
     );
 }

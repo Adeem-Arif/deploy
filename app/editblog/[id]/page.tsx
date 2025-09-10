@@ -18,9 +18,9 @@ const getBlog = async (id: string) => {
         const data = await res.json();
         return data.blog;
         
-    } catch (error) {
-    toast.error("invalid feild")
-    }
+        } catch (error) {
+        toast.error("invalid feild")
+        }
 };
 
 export default async function Editblog({ params }: { params: { id: string } }) {
