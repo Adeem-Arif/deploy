@@ -7,85 +7,82 @@ import mongoose from "mongoose";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
-
+// ✅ UPDATE blog
 export async function PUT(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: { id: string } }
 ) {
     await connectionToDatabase();
-    const id = await params.id;
+    const { id } = context.params;
 
     try {
-
         const formData = await req.formData();
-   
-        const tittle = formData.get('tittle') as string;
-        const category = formData.get('category') as string;
-        const content = formData.get('content') as string;
-        const newImage = formData.get("image") as File || "";
+        const tittle = formData.get("tittle") as string;
+        const category = formData.get("category") as string;
+        const content = formData.get("content") as string;
+        const newImage = formData.get("image") as File | null;
+
         const blog = await Blog.findById(id);
- 
         if (!blog) {
-            return NextResponse.json({ message: "blog does not fin " }, { status: 400 })
-        }
-        if (blog.image) {
-            const publicId = extractPublicId(blog.image);
-            if (publicId) {
-                await cloudinary.uploader.destroy(publicId);
-            }
+            return NextResponse.json({ message: "Blog not found" }, { status: 404 });
         }
 
-        let imageUrl: string = "";
+        // If old image exists and new image uploaded → delete old one
+        let imageUrl = blog.image;
         if (newImage) {
+            if (blog.image) {
+                const publicId = extractPublicId(blog.image);
+                if (publicId) {
+                    await cloudinary.uploader.destroy(publicId);
+                }
+            }
             try {
-
-                imageUrl = await CloudinaryUploader(newImage,"blog-Picture") as string
-
+                imageUrl = (await CloudinaryUploader(newImage, "blog-Picture")) as string;
             } catch (error) {
-                console.error("Image upload error:", error);
+                console.error("❌ Image upload error:", error);
                 return NextResponse.json({ message: "Image upload failed" }, { status: 500 });
             }
         }
 
-        const updateBlog = await Blog.findByIdAndUpdate(id, { tittle, content, category, image: imageUrl });
-        if (!updateBlog) {
-            return NextResponse.json({ message: "Blog is not update" }, { status: 404 })
-        }
-        return NextResponse.json({ message: "Blog is  update successfully" }, { status: 200 })
-
+        await Blog.findByIdAndUpdate(id, { tittle, content, category, image: imageUrl });
+        return NextResponse.json({ message: "Blog updated successfully" }, { status: 200 });
+    } catch (error) {
+        console.error("❌ Error updating blog:", error);
+        return NextResponse.json(
+            { message: "Something went wrong", error: (error as Error).message },
+            { status: 500 }
+        );
     }
-    catch (error) {
-        return NextResponse.json({ message: "Something went wrong", error }, { status: 500 });
-    }
-
 }
 
+// ✅ GET single blog
 export async function GET(
+    id: string
+) {
+    await connectionToDatabase();
+    const blog = await Blog.findById(id);
+    if (!blog) {
+        return NextResponse.json({ message: "Blog not found" }, { status: 404 });
+    }
+    return NextResponse.json({ blog }, { status: 200 });
+}
+
+// ✅ DELETE blog
+export async function DELETE(
     req: NextRequest,
     { params }: { params: { id: string } }
 ) {
-    const id = params.id
-    await connectionToDatabase();
-    const blog = await Blog.findOne({ _id: id })
-    return NextResponse.json({ blog }, { status: 200 })
-}
-
-
-
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-
-
     try {
         await connectionToDatabase();
 
         const token = await getToken({ req });
-        if (!token || !token.id || !mongoose.Types.ObjectId.isValid(token.id as string)) {
+        if (!token?.id || !mongoose.Types.ObjectId.isValid(token.id as string)) {
             return NextResponse.json({ message: "Unauthorized or invalid user ID" }, { status: 401 });
         }
 
-        const blogId = await params.id
+        const blogId = params.id;
         if (!mongoose.Types.ObjectId.isValid(blogId)) {
-            return NextResponse.json({ message: "Invalid Id " }, { status: 400 })
+            return NextResponse.json({ message: "Invalid blog ID" }, { status: 400 });
         }
 
         const blog = await Blog.findById(blogId);
@@ -93,41 +90,40 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
             return NextResponse.json({ message: "Blog not found" }, { status: 404 });
         }
 
+        // Check ownership
+        if (blog.userId.toString() !== token.id) {
+            return NextResponse.json({ message: "Not authorized to delete this blog" }, { status: 403 });
+        }
+
         if (blog.image) {
             const publicId = extractPublicId(blog.image);
             if (publicId) {
                 await cloudinary.uploader.destroy(publicId);
             }
         }
-        await Comment.deleteMany({ blogId })
-        await Favourite.deleteMany({ blogId })
 
-        const deleteBlog = await Blog.findByIdAndDelete(blogId);
-        if (!deleteBlog) {
-            return NextResponse.json({ message: "blog is not deleted " }, { status: 400 })
-        }
+        await Comment.deleteMany({ blogId });
+        await Favourite.deleteMany({ blogId });
+        await Blog.findByIdAndDelete(blogId);
+
         return new NextResponse(null, { status: 204 });
     } catch (error) {
-
         console.error("❌ Error deleting blog:", error);
         return NextResponse.json(
             { message: "Server error", error: (error as Error).message },
-            { status: 500 })
+            { status: 500 }
+        );
     }
 }
 
-
-
-
+// ✅ helper
 function extractPublicId(imageUrl: string): string | null {
     try {
         const url = new URL(imageUrl);
-        const parts = url.pathname.split('/');
-        const publicIdWithExt = parts.slice(-2).join('/'); // e.g., blog-Picture/xyz123.jpg
-        return publicIdWithExt.replace(/\.[^/.]+$/, '');    // remove .jpg or .png
+        const parts = url.pathname.split("/");
+        const publicIdWithExt = parts.slice(-2).join("/"); // e.g., blog-Picture/xyz123.jpg
+        return publicIdWithExt.replace(/\.[^/.]+$/, ""); // remove .jpg or .png
     } catch {
         return null;
     }
 }
-
-
