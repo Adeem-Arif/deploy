@@ -60,13 +60,24 @@ export async function GET(
     req: NextRequest,
     context: { params: { id: string } }
 ) {
-    await connectionToDatabase();
-    const { id } = context.params;
-    const blog = await Blog.findById(id);
-    if (!blog) {
-        return NextResponse.json({ message: "Blog not found" }, { status: 404 });
+    try {
+        await connectionToDatabase();
+        const { id } = context.params;
+
+        const blog = await Blog.findById(id);
+
+        if (!blog) {
+            return NextResponse.json({ message: "Blog not found" }, { status: 404 });
+        }
+
+        return NextResponse.json({ blog }, { status: 200 });
+    } catch (error: any) {
+        console.error("❌ GET /blog/[id] error:", error.message || error);
+        return NextResponse.json(
+            { message: "Internal server error" },
+            { status: 500 }
+        );
     }
-    return NextResponse.json({ blog }, { status: 200 });
 }
 
 // ✅ DELETE blog
