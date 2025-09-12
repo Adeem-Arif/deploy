@@ -54,11 +54,15 @@ export async function PUT(
         );
     }
 }
-
+type BlogContext = {
+  params: {
+    id: string;
+  };
+};
 // ✅ GET single blog
 export async function GET(
     req: NextRequest,
-    context: { params: { id: string } }
+    context: BlogContext,
 ) {
     try {
         await connectionToDatabase();
