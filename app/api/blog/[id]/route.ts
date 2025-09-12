@@ -66,7 +66,7 @@ export async function GET(
 ) {
     try {
         await connectionToDatabase();
-        const { id } = context.params;
+        const { id } = await context.params;
 
         const blog = await Blog.findById(id);
 
