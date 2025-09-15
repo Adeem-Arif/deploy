@@ -13,6 +13,7 @@ import {
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { CldUploadButton } from "next-cloudinary";
 
 type Category = "technology" | "LifeStyle" | "travel";
 
@@ -34,7 +35,7 @@ export default function EditBlogForm({ blogId, initialData }: Props) {
   const [tittle, setTitle] = useState(initialData?.tittle || "");
   const [category, setCategory] = useState<Category | "">(initialData?.category || "");
   const [content, setContent] = useState(initialData?.content || "");
-  const [image, setImage] = useState<File | null>(null);
+  const [image, setImage] = useState<string | null>(null);
 
   const router = useRouter()
 
@@ -106,8 +107,13 @@ export default function EditBlogForm({ blogId, initialData }: Props) {
           <TipTapEditor content={content} onChange={setContent} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="content">Image</Label>
-          <input type="file" onChange={(e) => setImage(e.target.files?.[0] || null)} />
+          <CldUploadButton
+            uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+            onSuccess={(result: any) => {
+              console.log('Upload result:', result);
+              setImage(result?.info?.secure_url);
+            }}
+          />
         </div>
 
         <div className="pt-4 text-right">

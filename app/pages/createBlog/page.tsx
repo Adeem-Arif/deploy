@@ -2,6 +2,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { CldUploadButton } from 'next-cloudinary';
 import TipTapEditor from "@/components/TipTap";
 import {
   Select,
@@ -20,7 +21,7 @@ export default function CreateBlogPage() {
   const [tittle, setTittle] = useState("");
   const [category, setCategory] = useState<Category | "">("");
   const [content, setContent] = useState("");
-  const [image, setImageFile] = useState<File | null>(null);
+  const [image, setImageFile] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -80,7 +81,7 @@ export default function CreateBlogPage() {
       setLoading(false);
     }
   };
-
+// console.log(image)
   return (
     <div className="min-h-screen bg-muted flex items-center justify-center p-6">
       <div className="w-full max-w-2xl bg-white p-8 rounded-2xl shadow-xl space-y-6">
@@ -98,11 +99,18 @@ export default function CreateBlogPage() {
 
         <div className="space-y-2">
           <Label htmlFor="image">Image</Label>
-          <Input
+          {/* <Input
             onChange={(e) => setImageFile(e.target.files?.[0] || null)}
             type="file"
             id="image"
             accept="image/*"
+          /> */}
+          <CldUploadButton
+            uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+            onSuccess={(result: any) => {
+              console.log('Upload result:', result);
+              setImageFile(result?.info?.secure_url);
+            }}
           />
         </div>
 

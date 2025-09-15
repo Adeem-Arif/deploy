@@ -38,10 +38,13 @@ export default function DashBoard() {
         if (!res.ok) throw new Error("Failed to fetch blogs");
 
         const data = await res.json();
-        console.log("Fetched blogs:", data.blog);
-        setBlogs(data.blog);
+        console.log("Fetched blogs:", data);
+
+        // Fix here: make sure you’re setting the right property
+        setBlogs(data.blog || data.blogs || []);
       } catch (error) {
         console.error("Error fetching blogs:", error);
+        setBlogs([]); // fallback to empty array so map doesn’t break
       }
     };
     getBlogs();

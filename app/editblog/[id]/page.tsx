@@ -23,8 +23,8 @@ const getBlog = async (id: string) => {
         }
 };
 
-export default async function Editblog({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default async function Editblog({ params }: { params: Promise<{ id: string }> }) {
+    const id = (await params).id;
     const blog = await getBlog(id);
 
     if (!blog) return <div>Blog not found.</div>;
