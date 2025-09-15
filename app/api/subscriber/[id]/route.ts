@@ -5,15 +5,12 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 import notification from "@/models/notification";
 
-
-
-
 interface SubscriberItem {
   userId: mongoose.Types.ObjectId;
   date?: Date;
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   await connectionToDatabase();
   const token = await getToken({ req });
   if (!token?.id || typeof token.id !== "string") {
@@ -21,7 +18,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 
   const subscriberId = new mongoose.Types.ObjectId(token.id);
-  const authorId = new mongoose.Types.ObjectId(params.id);
+  const authorId = new mongoose.Types.ObjectId((await params).id);
 
   if (subscriberId.equals(authorId)) {
     return NextResponse.json({ message: "You cannot subscribe to yourself" }, { status: 400 });
@@ -77,43 +74,35 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-    await connectionToDatabase();
-    const token = await getToken({ req });
-    if (!token?.id || typeof token.id !== 'string') {
-        return NextResponse.json({ message: "Invalid token ID" }, { status: 400 });
-    }
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await connectionToDatabase();
+  const token = await getToken({ req });
+  if (!token?.id || typeof token.id !== 'string') {
+    return NextResponse.json({ message: "Invalid token ID" }, { status: 400 });
+  }
 
-    const subscriberId = await new mongoose.Types.ObjectId(token.id);
-    const authorId = await new mongoose.Types.ObjectId(params.id);
+  const subscriberId = await new mongoose.Types.ObjectId(token.id);
+  const authorId = await new mongoose.Types.ObjectId((await (params)).id);
 
-    if (subscriberId == authorId) {
-        return NextResponse.json({ message: "you cannot subscribe yourself" }, { status: 400 })
-    }
-    try {
-        await Subscribe.updateOne(
-            { userId: subscriberId },
-            { $pull: { subscriberTo: { userId: authorId } } }
+  if (subscriberId == authorId) {
+    return NextResponse.json({ message: "you cannot subscribe yourself" }, { status: 400 })
+  }
+  try {
+    await Subscribe.updateOne(
+      { userId: subscriberId },
+      { $pull: { subscriberTo: { userId: authorId } } }
 
-        )
+    )
 
-        await Subscribe.updateOne(
-            { userId: authorId },
-            { $pull: { subscriber: { userId: subscriberId } } }
+    await Subscribe.updateOne(
+      { userId: authorId },
+      { $pull: { subscriber: { userId: subscriberId } } }
 
-        )
+    )
+    return NextResponse.json({ message: "Unsubscribed successfully" }, { status: 200 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ message: "failed to unsubscibe" }, { status: 500 });
 
-
-
-        return NextResponse.json({ message: "Unsubscribed successfully" }, { status: 200 });
-
-
-    } catch (error) {
-        console.error(error);
-        return NextResponse.json({ message: "failed to unsubscibe" }, { status: 500 });
-
-    }
-
-
-
+  }
 }

@@ -7,8 +7,8 @@ import mongoose from "mongoose";
 import User from "@/models/user";
 import notification from "@/models/notification";
 
-export async function POST(req: NextRequest, context: { params: { id: string } }) {
-    const { id } = context.params;
+export async function POST(req: NextRequest, {params}: { params: Promise<{ id: string }> }) {
+    const id = (await params).id;
 
     await connectionToDatabase();
 
@@ -51,10 +51,10 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
 }
 
 
-export async function PUT(req: NextRequest, context: { params: { id: string } }) {
+export async function PUT(req: NextRequest, {params}: { params: Promise<{ id: string }> }) {
     await connectionToDatabase();
 
-    const { id } = context.params;
+    const id = (await params).id;
     const token = await getToken({ req });
 
     if (!token) {

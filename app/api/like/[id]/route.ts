@@ -8,9 +8,9 @@ import notification from "@/models/notification";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const blogId = params.id;
+  const blogId = (await params).id;
 
   await connectionToDatabase();
 

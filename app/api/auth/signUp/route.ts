@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 import User from "@/models/user";
 import { connectionToDatabase } from "@/lib/mongodb";
 import { Resend } from "resend";
-import BlogOtpEmail from "@/app/pages/OTP/page"; // ⚠️ adjust path to your email component
+import BlogOtpEmail from "@/components/otp-page";
+// import BlogOtpEmail from "@/app/pages/OTP/page"; // ⚠️ adjust path to your email component
 
 // simple email validator
 const isValidEmail = (email: string) =>

@@ -6,7 +6,7 @@ import Blog from "@/models/blog";
 import notification from "@/models/notification";
 import User from "@/models/user";
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     await connectionToDatabase();
 
     const token = await getToken({ req });
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     try {
-        const { id } = await params;
+        const id = (await params).id;
         const { comment } = await req.json();
         if (!comment) {
             return NextResponse.json({ message: "invalid Comment " }, { status: 400 })
@@ -60,11 +60,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     await connectionToDatabase();
 
     try {
-        const { id } = await params
+        const id = (await params).id
         const comments = await Comment.find({ blogId: id }).sort({ createdAt: -1 })
         return NextResponse.json({ comments })
     } catch (error) {
